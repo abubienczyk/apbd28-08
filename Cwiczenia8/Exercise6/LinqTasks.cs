@@ -163,8 +163,9 @@ namespace Exercise6
         ///     SELECT * FROM Emps WHERE Job = "Backend programmer";
         /// </summary>
         public static IEnumerable<Emp> Task1()
-        {
-            IEnumerable<Emp> result = null;
+        {   
+            var methodSyntax = Emps.Where(e => e.Job.Equals("Backend programmer"));
+            IEnumerable<Emp> result = methodSyntax;
             return result;
         }
 
@@ -173,9 +174,9 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<Emp> Task2()
         {
-            var methodSyntax = Emps.Where(e => e.Job.Equals("Fronted programmer") && e.Salary > 1000)
+            var methodSyntax = Emps.Where(e => e.Job.Equals("Frontend programmer") && e.Salary > 1000)
                 .OrderByDescending(e => e.Ename);
-            IEnumerable<Emp> result = null;
+            IEnumerable<Emp> result = methodSyntax;
             return result;
         }
 
@@ -186,6 +187,10 @@ namespace Exercise6
         public static int Task3()
         {
             int result = 0;
+            var a = new { Placa=100 };
+            var methodSyntax = Emps.Select(e => new { Placa = e.Salary })
+                .Max(e => e.Placa);
+            result = methodSyntax;
             return result;
         }
 
@@ -194,7 +199,9 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<Emp> Task4()
         {
-            IEnumerable<Emp> result = null;
+
+            var methodSyntax = Emps.Where(e => e.Salary == Emps.Max(e=> e.Salary));
+            IEnumerable<Emp> result = methodSyntax;
             return result;
         }
 
@@ -208,7 +215,7 @@ namespace Exercise6
             //method syntax
             var methodSyntax = Emps.Select(e => new {Nazwisko = e.Ename, Praca = e.Job });
            
-            IEnumerable<object> result = null;
+            IEnumerable<object> result = methodSyntax;
             return result;
         }
 
@@ -219,7 +226,13 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<object> Task6()
         {
-            IEnumerable<object> result = null;
+            //var a = new { Nazwisko = "Kowalski", Praca = "Front", Departament = "Ksiegowosc" };
+            var methodSyntax = Emps.Join(Depts, emp => emp.Deptno, dept => dept.Deptno,
+                (emp, dept) => new
+                {
+                    emp.Ename,  emp.Job, dept.Dname
+                });
+            IEnumerable<object> result = methodSyntax;
             return result;
         }
 
@@ -228,7 +241,15 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<object> Task7()
         {
-            IEnumerable<object> result = null;
+            var a = new { Praca = "Front", LiczbaPrcownikow=10 };
+            var methodSyntax = Emps
+                .GroupBy(emp => emp.Job)
+                .Select(group => new 
+                {
+                    Praca = group.Key,
+                    LiczbaPracownikow = group.Count()
+                });
+            IEnumerable<object> result = methodSyntax;
             return result;
         }
 
@@ -239,6 +260,10 @@ namespace Exercise6
         public static bool Task8()
         {
             bool result = false;
+            var methodSyntax = Emps.Where(e => e.Job.Equals("Backend programmer"))
+                .Count();
+            if (methodSyntax == 0) result = false;
+            else  result = true;
             return result;
         }
 
@@ -248,7 +273,10 @@ namespace Exercise6
         /// </summary>
         public static Emp Task9()
         {
-            Emp result = null;
+            var methodSyntax = Emps.Where(e => e.Job.Equals("Frontend programmer"))
+                .OrderByDescending(e => e.HireDate)
+                .First();
+            Emp result = methodSyntax;
             return result;
         }
 
@@ -259,7 +287,9 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<object> Task10()
         {
-            IEnumerable<object> result = null;
+            var methodSyntax = Emps.Select(e => new { e.Ename, e.Job, e.HireDate })
+                .Union(new[] { new { Ename = "Brak wartości", Job = (string)null, HireDate = (DateTime?)null } });
+            IEnumerable<object> result = methodSyntax;
             return result;
         }
 
@@ -276,7 +306,13 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<object> Task11()
         {
-            IEnumerable<object> result = null;
+            var a = new { name = "HR", numOfEmployees=10 };
+            var methodSyntax = Emps
+                .Join(Depts, emp => emp.Deptno, dept => dept.Deptno, (emp, dept) => new { emp, dept })
+                .GroupBy(emptdept => emptdept.dept.Dname)
+                .Where(group => group.Count() > 1)
+                .Select(group => new { name = group.Key, numOfEmployees = group.Count() });
+            IEnumerable<object> result = methodSyntax;
             return result;
         }
 
@@ -289,7 +325,7 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<Emp> Task12()
         {
-            IEnumerable<Emp> result = null;
+            IEnumerable<Emp> result =  Emps.Task12Extension();;
             return result;
         }
 
@@ -303,7 +339,10 @@ namespace Exercise6
         public static int Task13(int[] arr)
         {
             int result = 0;
-            //result=
+            var methodSyntax=arr.GroupBy(n => n)
+                .Select(group => new { Number = group.Key, Count = group.Count() })
+                .First(pair => pair.Count % 2 != 0).Number;
+            result = methodSyntax;
             return result;
         }
 
@@ -313,8 +352,19 @@ namespace Exercise6
         /// </summary>
         public static IEnumerable<Dept> Task14()
         {
+            
             IEnumerable<Dept> result = null;
-            //result =
+            result = Depts.GroupJoin(
+                    Emps.GroupBy(e => e.Deptno)
+                        .Select(group => new { Deptno = group.Key, Count = group.Count() }),
+                    d => d.Deptno,
+                    dc => dc.Deptno,
+                    (d, dc) => new { Dept = d, Count = dc.FirstOrDefault()?.Count ?? 0 }
+                )
+                .Where(d => d.Count == 5 || d.Count == 0)
+                .OrderBy(d => d.Dept.Dname)
+                .Select(d => d.Dept);
+
             return result;
         }
     }
@@ -322,5 +372,13 @@ namespace Exercise6
     public static class CustomExtensionMethods
     {
         //Put your extension methods here
+        public static IEnumerable<Emp> Task12Extension(this IEnumerable<Emp> emps)
+        {
+            var result = emps.Where(emp => emps.Any(e => e.Mgr != null && e.Mgr.Empno == emp.Empno))
+                .OrderBy(emp => emp.Ename)
+                .ThenByDescending(emp => emp.Salary);
+
+            return result;
+        }
     }
 }
